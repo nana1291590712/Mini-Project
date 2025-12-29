@@ -28,14 +28,18 @@ int main(void)
         key = Keypad_GetKey();
         if (!key) continue;
 
-        /* '=' ??? '*' ?? */
+        /* '=' ? '*' */
         if (key == '*')
         {
-            result = calc_eval(Input_GetExpr());
+            if (Input_HasError())
+            {
+                Delay_ms(200);
+                continue;   /* Error ?????? */
+            }
 
+            result = calc_eval(Input_GetExpr());
             snprintf(buf, 17, "%.8g", result);
 
-            /* ?????,???????(?????) */
             Input_SetExpr(buf);
 
             LCD_SetCursor(1,0);
@@ -47,13 +51,21 @@ int main(void)
             continue;
         }
 
-        /* ?????????? */
+        /* ???? */
         Input_HandleKey(key);
 
         LCD_SetCursor(1,0);
         LCD_PrintString("                ");
         LCD_SetCursor(1,0);
-        LCD_PrintString(Input_GetExpr());
+
+        if (Input_HasError())
+        {
+            LCD_PrintString("Error");
+        }
+        else
+        {
+            LCD_PrintString(Input_GetExpr());
+        }
 
         Delay_ms(120);
     }
