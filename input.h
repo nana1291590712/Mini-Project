@@ -12,4 +12,7 @@ void Input_SetExpr(const char *s);
 int  Input_HasError(void);
 void Input_ClearError(void);
 
+/* Shift ???? */
+int  Input_IsShift(void);
+
 #endif

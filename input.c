@@ -70,7 +70,6 @@ static void backspace(void)
         pos--;
         expr[pos] = '\0';
 
-        /* ??????????? */
         if (pos < 2 || !is_op(expr[pos - 1]) || !is_op(expr[pos - 2]))
         {
             error_flag = 0;
@@ -128,4 +127,9 @@ int Input_HasError(void)
 void Input_ClearError(void)
 {
     error_flag = 0;
+}
+
+int Input_IsShift(void)
+{
+    return shift_mode;
 }
