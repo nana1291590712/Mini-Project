@@ -1,22 +1,24 @@
 #include "input.h"
 #include <string.h>
 
-/* ????? */
+/* Expression buffer */
 static char expr[MAX_LEN + 1];
 static int pos;
 
-/* Shift ??:0 = normal, 1 = shift */
+/* Shift mode state */
 static int shift_mode;
 
-/* Error ?? */
+/* Error state flag */
 static int error_flag;
 
 /* ------------------------------------------------ */
+/* Check whether a character is an operator */
 static int is_op(char c)
 {
     return (c == '+' || c == '-' || c == 'x' || c == '/');
 }
 
+/* Initialize input module state */
 void Input_Init(void)
 {
     memset(expr, 0, sizeof(expr));
@@ -25,11 +27,13 @@ void Input_Init(void)
     error_flag = 0;
 }
 
+/* Return current expression string */
 const char *Input_GetExpr(void)
 {
     return expr;
 }
 
+/* Replace expression with given string */
 void Input_SetExpr(const char *s)
 {
     int i = 0;
@@ -44,6 +48,7 @@ void Input_SetExpr(const char *s)
 }
 
 /* ------------------------------------------------ */
+/* Append a character to expression */
 static void append_char(char c)
 {
     if (pos < MAX_LEN)
@@ -53,6 +58,7 @@ static void append_char(char c)
     }
 }
 
+/* Append operator and check for invalid sequence */
 static void append_op(char op)
 {
     if (pos > 0 && is_op(expr[pos - 1]))
@@ -63,6 +69,7 @@ static void append_op(char op)
     append_char(op);
 }
 
+/* Remove last character from expression */
 static void backspace(void)
 {
     if (pos > 0)
@@ -77,6 +84,7 @@ static void backspace(void)
     }
 }
 
+/* Clear entire expression buffer */
 static void clear_all(void)
 {
     pos = 0;
@@ -85,23 +93,24 @@ static void clear_all(void)
 }
 
 /* ------------------------------------------------ */
+/* Handle keypad input according to current mode */
 void Input_HandleKey(char key)
 {
-    /* Shift ?? */
+    /* Toggle shift mode */
     if (key == 'D')
     {
         shift_mode = !shift_mode;
         return;
     }
 
-    /* ?? */
+    /* Handle numeric input */
     if (key >= '0' && key <= '9')
     {
         append_char(key);
         return;
     }
 
-    /* Normal ?? */
+    /* Handle keys in normal mode */
     if (!shift_mode)
     {
         if      (key == 'A') append_op('+');
@@ -109,7 +118,7 @@ void Input_HandleKey(char key)
         else if (key == 'C') append_char('.');
         else if (key == '#') backspace();
     }
-    /* Shift ?? */
+    /* Handle keys in shift mode */
     else
     {
         if      (key == 'A') append_op('x');
@@ -119,16 +128,19 @@ void Input_HandleKey(char key)
 }
 
 /* ------------------------------------------------ */
+/* Return error state */
 int Input_HasError(void)
 {
     return error_flag;
 }
 
+/* Clear error state */
 void Input_ClearError(void)
 {
     error_flag = 0;
 }
 
+/* Return shift mode state */
 int Input_IsShift(void)
 {
     return shift_mode;

@@ -2,19 +2,16 @@
 #include "delay.h"
 #include <stdint.h>
 
-/* ================= GPIO ??(????????) ================= */
-/* Port A:LCD ??? */
+/* GPIO data registers used for LCD control and data */
 #define GPIO_PORTA_DATA_R   (*((volatile uint32_t *)0x400043FC))
-
-/* Port B:LCD ??? D0–D7(8-bit) */
 #define GPIO_PORTB_DATA_R   (*((volatile uint32_t *)0x400053FC))
 
-/* LCD ???(??????????) */
-#define LCD_RS  0x04   // PA2
-#define LCD_RW  0x08   // PA3
-#define LCD_EN  0x10   // PA4
+/* LCD control signals connected to port A */
+#define LCD_RS  0x04
+#define LCD_RW  0x08
+#define LCD_EN  0x10
 
-/* ================= ???? ================= */
+/* Generate enable pulse for LCD */
 static void LCD_PulseEnable(void)
 {
     GPIO_PORTA_DATA_R |= LCD_EN;
@@ -22,25 +19,26 @@ static void LCD_PulseEnable(void)
     GPIO_PORTA_DATA_R &= ~LCD_EN;
 }
 
-/* ================= ???? ================= */
-
+/* Send command instruction to LCD */
 void LCD_Command(uint8_t cmd)
 {
-    GPIO_PORTA_DATA_R &= ~(LCD_RS | LCD_RW);  // RS=0, RW=0
-    GPIO_PORTB_DATA_R = cmd;                  // 8-bit ??
-    LCD_PulseEnable();
-    Delay_ms(2);                              // ??????
-}
-
-void LCD_WriteChar(char c)
-{
-    GPIO_PORTA_DATA_R |= LCD_RS;              // RS=1
-    GPIO_PORTA_DATA_R &= ~LCD_RW;             // RW=0
-    GPIO_PORTB_DATA_R = (uint8_t)c;           // 8-bit ??
+    GPIO_PORTA_DATA_R &= ~(LCD_RS | LCD_RW);
+    GPIO_PORTB_DATA_R = cmd;
     LCD_PulseEnable();
     Delay_ms(2);
 }
 
+/* Write one character to LCD data register */
+void LCD_WriteChar(char c)
+{
+    GPIO_PORTA_DATA_R |= LCD_RS;
+    GPIO_PORTA_DATA_R &= ~LCD_RW;
+    GPIO_PORTB_DATA_R = (uint8_t)c;
+    LCD_PulseEnable();
+    Delay_ms(2);
+}
+
+/* Write a null terminated string to LCD */
 void LCD_PrintString(const char *s)
 {
     while (*s)
@@ -49,26 +47,27 @@ void LCD_PrintString(const char *s)
     }
 }
 
+/* Clear LCD display and reset cursor */
 void LCD_Clear(void)
 {
-    LCD_Command(0x01);    // Clear display
+    LCD_Command(0x01);
     Delay_ms(2);
 }
 
+/* Set LCD cursor to specified row and column */
 void LCD_SetCursor(uint8_t row, uint8_t col)
 {
     uint8_t addr = (row == 0) ? col : (0x40 + col);
     LCD_Command(0x80 | addr);
 }
 
-/* ================= ???(8-bit) ================= */
-
+/* Initialize LCD in eight bit mode */
 void LCD_Init(void)
 {
-    Delay_ms(20);          // ????
+    Delay_ms(20);
 
-    LCD_Command(0x38);     // ? 8-bit, 2 lines(??)
-    LCD_Command(0x0C);     // Display ON, cursor OFF
-    LCD_Command(0x06);     // Entry mode
+    LCD_Command(0x38);
+    LCD_Command(0x0C);
+    LCD_Command(0x06);
     LCD_Clear();
 }
